@@ -71,3 +71,17 @@ Next:
 6. add working/episodic/semantic/world memory and reusable skill experience.
 
 Private design notes, credentials, raw logs and cross-thread handoff notes deliberately live outside this public repository.
+
+## Decision backend routing
+
+The body loop depends on a small provider-neutral contract: `decide(state, candidates) -> { action, ...optional metadata }`. System One details are adapter capabilities, not a requirement for every future backend.
+
+Current default order is `experiential,typesafe` when both keys are available. Experiential uses its native `/v1/systemone` Jev lane first; explicit free-tier/quota/auth/grant failures fall through to direct TypeSafe and put the exhausted lane on a cooldown. Ambiguous transport failures do not automatically resend through another provider.
+
+Environment:
+- `EXPERIENTIAL_API_KEY` or `EXPLABS_API_KEY`: Experiential hosted gateway key.
+- `TYPESAFE_API_KEY`: direct TypeSafe key.
+- `DECISION_PROVIDER_ORDER`: comma-separated current provider order, default `experiential,typesafe`.
+- `EXPERIENTIAL_FALLBACK_COOLDOWN_MS`: how long to skip an explicitly exhausted/unavailable Experiential lane, default 300000.
+
+`DecisionRouter` revalidates that every returned `action` is one of the live candidates even when an adapter is not System-One-based. Provider capability metadata records optional features such as typed choice, probability distributions, binary probabilities, ordinal scores, maximum choice count and native vision. A future Jev-like or superior decision model therefore needs an adapter, not a rewrite of the Minecraft body loop.
