@@ -7,7 +7,8 @@
     "test": "node --test",
     "probe": "node probe.mjs",
     "postinstall": "node patch-pathfinder.mjs && node prepare-viewer.mjs",
-    "companion": "node companion/run.mjs"
+    "companion": "node companion/run.mjs",
+    "companion:replay": "node companion/replay.mjs"
   },
   "dependencies": {
     "canvas": "^3.2.3",

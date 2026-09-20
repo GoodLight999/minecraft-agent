@@ -1,0 +1,35 @@
+{
+  "name": "modded-plan-target",
+  "state": {
+    "capturedAt": 0,
+    "dimension": "overworld",
+    "position": {"x": 0, "y": 64, "z": 0},
+    "health": 20,
+    "food": 20,
+    "master": {"visible": true, "entityId": 10, "distance": 4, "position": {"x": 4, "y": 64, "z": 0}},
+    "threats": [],
+    "animals": [],
+    "drops": [],
+    "nearbyBlocks": [{"name": "create:zinc_ore", "distance": 3, "position": {"x": 2, "y": 62, "z": 1}}],
+    "inventory": [],
+    "inventoryCounts": {"create:zinc_ore": 0},
+    "inventorySlotsUsed": 0,
+    "inventorySlotsFree": 36,
+    "activity": "mining",
+    "plan": {
+      "activity": "mining",
+      "objective": "Collect zinc for the shared modded build.",
+      "targets": {"create:zinc_ore": 8},
+      "social": {"preferredDistance": 5, "maxDistance": 14}
+    },
+    "recent": []
+  },
+  "meta": {"craftable": [], "cooldowns": []},
+  "expect": {
+    "mustInclude": [
+      "mine_nearby_ore__create_zinc_ore_2_62_1",
+      "mine_plan_target__create_zinc_ore_2_62_1"
+    ],
+    "maxCandidates": 20
+  }
+}

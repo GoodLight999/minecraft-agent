@@ -1,0 +1,50 @@
+{
+  "name": "storage-smelting-ranching",
+  "state": {
+    "capturedAt": 0,
+    "dimension": "overworld",
+    "position": {"x": 0, "y": 64, "z": 0},
+    "health": 20,
+    "food": 20,
+    "master": {"visible": true, "entityId": 10, "distance": 4, "position": {"x": 4, "y": 64, "z": 0}},
+    "threats": [],
+    "animals": [{"entityId": 20, "name": "cow", "distance": 3, "position": {"x": 1, "y": 64, "z": 1}}],
+    "drops": [],
+    "nearbyBlocks": [
+      {"name": "chest", "distance": 3, "position": {"x": 1, "y": 64, "z": 0}},
+      {"name": "furnace", "distance": 4, "position": {"x": 2, "y": 64, "z": 0}},
+      {"name": "blast_furnace", "distance": 5, "position": {"x": 3, "y": 64, "z": 0}},
+      {"name": "smoker", "distance": 6, "position": {"x": 4, "y": 64, "z": 0}},
+      {"name": "crafting_table", "distance": 3, "position": {"x": 0, "y": 64, "z": 2}}
+    ],
+    "inventory": [
+      {"name": "raw_iron", "count": 6, "slot": 1},
+      {"name": "coal", "count": 4, "slot": 2},
+      {"name": "wheat", "count": 8, "slot": 3},
+      {"name": "dirt", "count": 48, "slot": 4}
+    ],
+    "inventoryCounts": {"raw_iron": 6, "coal": 4, "wheat": 8, "dirt": 48, "iron_ingot": 0, "stick": 0},
+    "inventorySlotsUsed": 34,
+    "inventorySlotsFree": 2,
+    "activity": "storage ranching smelting",
+    "plan": {
+      "activity": "ranching",
+      "objective": "Organize storage, breed cows, craft sticks and smelt iron.",
+      "targets": {"iron_ingot": 4, "stick": 4},
+      "social": {"preferredDistance": 5, "maxDistance": 14}
+    },
+    "recent": []
+  },
+  "meta": {"craftable": ["stick"], "cooldowns": []},
+  "expect": {
+    "mustInclude": [
+      "craft_plan_target__stick",
+      "load_furnace_for_plan__iron_ingot_raw_iron_furnace_",
+      "load_furnace_for_plan__iron_ingot_raw_iron_blast_furnace_",
+      "feed_ranch_animal__cow_20_wheat",
+      "deposit_bulk_item__chest_1_64_0_dirt"
+    ],
+    "mustExclude": ["load_furnace_for_plan__iron_ingot_raw_iron_smoker_"],
+    "maxCandidates": 64
+  }
+}

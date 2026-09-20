@@ -120,3 +120,26 @@ The companion now treats ordinary Minecraft work as short, composable decision s
 - **Ranching:** observed cows, sheep, pigs and chickens become individual feed/breeding candidates when the high-level activity calls for ranching. Per-entity cooldowns avoid repeatedly feeding the same mob.
 
 Candidate generation removes clearly impossible or self-defeating options (for example, iron smelting in a smoker, or depositing raw iron/fuel while an unmet iron-ingot target depends on them) while leaving meaningful alternatives to the decision backend.
+
+
+## Offline replay harness
+
+Candidate generation can be regression-tested without launching Minecraft:
+
+```bash
+npm run companion:replay -- companion/fixtures/farm-with-danger.json
+npm run companion:replay -- companion/fixtures/storage-smelting-ranching.json
+npm run companion:replay -- companion/fixtures/modded-plan-target.json
+```
+
+Each fixture stores a structured world state plus candidate expectations such as required/forbidden action prefixes and a maximum candidate count. This catches missing capabilities and accidental candidate explosions before live-game testing.
+
+Appending `--live` sends the fixture's generated candidates to the currently configured decision router:
+
+```bash
+npm run companion:replay -- companion/fixtures/farm-with-danger.json --live
+```
+
+Live replay uses real provider quota/credits according to the configured Experiential/TypeSafe routing. Plain replay is fully offline and needs no API key.
+
+The modded fixture intentionally uses `create:zinc_ore`: explicit plan targets remain visible and become concrete mining candidates even when their registry names were never hardcoded into the companion.

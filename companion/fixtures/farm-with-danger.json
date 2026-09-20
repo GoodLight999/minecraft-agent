@@ -1,0 +1,40 @@
+{
+  "name": "farm-with-danger",
+  "state": {
+    "capturedAt": 0,
+    "dimension": "overworld",
+    "position": {"x": 0, "y": 64, "z": 0},
+    "health": 20,
+    "food": 20,
+    "master": {"visible": true, "entityId": 10, "distance": 6, "position": {"x": 6, "y": 64, "z": 0}},
+    "threats": [{"entityId": 21, "name": "zombie", "distance": 5, "distanceToMaster": 2, "position": {"x": 4, "y": 64, "z": 0}}],
+    "animals": [],
+    "drops": [{"entityId": 31, "name": "wheat_seeds", "distance": 3, "position": {"x": 1, "y": 64, "z": 1}}],
+    "nearbyBlocks": [
+      {"name": "wheat", "distance": 2, "mature": true, "position": {"x": 1, "y": 64, "z": 2}},
+      {"name": "iron_ore", "distance": 4, "position": {"x": 3, "y": 63, "z": 0}}
+    ],
+    "inventory": [{"name": "torch", "count": 16, "slot": 1}, {"name": "bread", "count": 4, "slot": 2}],
+    "inventoryCounts": {"torch": 16, "bread": 4, "iron_ore": 0},
+    "inventorySlotsUsed": 2,
+    "inventorySlotsFree": 34,
+    "activity": "farming",
+    "plan": {
+      "activity": "farming",
+      "objective": "Help the master tend the field and collect a little iron without leaving them behind.",
+      "targets": {"iron_ore": 2},
+      "social": {"preferredDistance": 5, "maxDistance": 14}
+    },
+    "recent": []
+  },
+  "meta": {"craftable": [], "cooldowns": []},
+  "expect": {
+    "mustInclude": [
+      "protect_master__zombie_21",
+      "collect_nearby_drop__wheat_seeds_31",
+      "harvest_and_replant_crop__wheat_1_64_2",
+      "mine_plan_target__iron_ore_3_63_0"
+    ],
+    "maxCandidates": 40
+  }
+}
