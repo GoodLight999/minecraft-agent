@@ -1,3 +1,5 @@
+const RANCHABLE = new Set(['cow','sheep','pig','chicken']);
+
 const HOSTILES = new Set([
   'zombie','husk','drowned','skeleton','stray','creeper','spider','cave_spider','witch',
   'pillager','vindicator','evoker','ravager','phantom','silverfish','blaze','ghast','piglin_brute',
@@ -50,6 +52,9 @@ export function snapshot(bot, { masterName, plan = null, recent = [], activity =
       distanceToMaster:master ? +e.position.distanceTo(master.position).toFixed(1) : null,
       position:pos(e.position)
     })).sort((a,b) => a.distance-b.distance).slice(0,16);
+  const animals = entities.filter(e => RANCHABLE.has(e.name) && e.position)
+    .map(e => ({ entityId:e.id, name:e.name, distance:+e.position.distanceTo(bot.entity.position).toFixed(1), position:pos(e.position) }))
+    .sort((a,b) => a.distance-b.distance).slice(0,16);
   const drops = entities.filter(e => e.name === 'item' && e.position)
     .map(e => ({ entityId:e.id, name:e.getDroppedItem?.()?.name ?? 'item', distance:+e.position.distanceTo(bot.entity.position).toFixed(1), position:pos(e.position) }))
     .sort((a,b) => a.distance-b.distance).slice(0,16);
@@ -61,8 +66,10 @@ export function snapshot(bot, { masterName, plan = null, recent = [], activity =
     heldItem:bot.heldItem?.name ?? null,
     inventory:inventory(bot),
     inventoryCounts:inventoryCounts(bot),
+    inventorySlotsUsed:bot.inventory.items().length,
+    inventorySlotsFree:Math.max(0, 36 - bot.inventory.items().length),
     master:master ? { entityId:master.id, visible:true, position:pos(master.position), distance:+master.position.distanceTo(bot.entity.position).toFixed(1) } : { visible:false },
-    threats, drops,
+    threats, animals, drops,
     nearbyBlocks:nearbyBlocks(bot, plan),
     plan, activity,
     recent:recent.slice(-8)

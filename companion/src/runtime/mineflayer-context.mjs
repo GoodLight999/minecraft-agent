@@ -3,6 +3,7 @@ import { Vec3 } from 'vec3';
 const CROP_AGE = { wheat:7, carrots:7, potatoes:7, beetroots:3 };
 
 export function createMineflayerContext(bot, { goals, getMasterName = () => null } = {}) {
+  const interactionCooldowns = new Map();
   if (!goals?.GoalNear || !goals?.GoalFollow) throw new TypeError('mineflayer-pathfinder goals are required');
 
   const stopMovement = () => {
@@ -69,6 +70,17 @@ export function createMineflayerContext(bot, { goals, getMasterName = () => null
     return true;
   };
 
+  const findCraftRecipe = itemName => {
+    const item = bot.registry.itemsByName[itemName];
+    if (!item) return null;
+    let recipes = bot.recipesFor(item.id, null, 1, null);
+    if (recipes?.length) return { item, recipe:recipes[0], table:null };
+    const table = bot.findBlock({ matching:block => block?.name === 'crafting_table', maxDistance:16 });
+    if (!table) return null;
+    recipes = bot.recipesFor(item.id, null, 1, table);
+    return recipes?.length ? { item, recipe:recipes[0], table } : null;
+  };
+
   return {
     bot,
     stopMovement,
@@ -82,6 +94,9 @@ export function createMineflayerContext(bot, { goals, getMasterName = () => null
     followEntitySegment,
     digBlock,
     attackOnce,
+    findCraftRecipe,
+    onCooldown:key => (interactionCooldowns.get(key) ?? 0) > Date.now(),
+    markCooldown:(key, ms) => interactionCooldowns.set(key, Date.now() + ms),
     isMatureCrop: block => {
       const age = CROP_AGE[block?.name];
       return age != null && Number(block.getProperties?.().age) >= age;

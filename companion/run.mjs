@@ -7,6 +7,7 @@ import { snapshot, freshnessSnapshot } from './src/runtime/state.mjs';
 import { createMineflayerContext } from './src/runtime/mineflayer-context.mjs';
 import { AsyncDirector } from './src/runtime/async-director.mjs';
 import { registerCompanionSkills } from './src/skills/companion-skills.mjs';
+import { registerWorkSkills } from './src/skills/work-skills.mjs';
 import { createDecisionRouterFromEnv } from './src/models/create-decision-router.mjs';
 import { DeepSeekDirector } from './src/models/deepseek-director.mjs';
 import { DialogueRuntime } from './src/voice/dialogue-runtime.mjs';
@@ -71,6 +72,7 @@ const context = createMineflayerContext(bot, {
 
 const registry = new SkillRegistry();
 registerCompanionSkills(registry);
+registerWorkSkills(registry);
 
 const actions = new ActionManager({
   stop:async reason => {

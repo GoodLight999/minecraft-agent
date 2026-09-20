@@ -108,3 +108,15 @@ Optional:
 - Minecraft chat remains the temporary human input surface and receives text replies unless `CHAT_REPLIES=0`.
 
 The body loop uses a full semantic world observation before the decision, then only a lightweight position/dimension snapshot for stale-decision validation. Movement skills are short segments so control returns to the decision backend frequently instead of locking the bot into multi-second follow/path jobs.
+
+
+## Ordinary-work expansion
+
+The companion now treats ordinary Minecraft work as short, composable decision steps rather than long scripted jobs.
+
+- **Storage:** deposit one conservative nonessential stack into an observed chest/barrel, or inspect an observed container and withdraw only unmet plan targets.
+- **Crafting:** use Mineflayer's live registry/recipe system to expose one currently craftable plan target at a time. This is intentionally registry-driven so modded recipe/item names have a path into the same abstraction when Mineflayer can see them.
+- **Smelting:** loading fuel/input and collecting output are separate actions. The companion does not wait at a furnace until cooking completes. Normal furnaces, blast furnaces and smokers are filtered by compatible output class.
+- **Ranching:** observed cows, sheep, pigs and chickens become individual feed/breeding candidates when the high-level activity calls for ranching. Per-entity cooldowns avoid repeatedly feeding the same mob.
+
+Candidate generation removes clearly impossible or self-defeating options (for example, iron smelting in a smoker, or depositing raw iron/fuel while an unmet iron-ingot target depends on them) while leaving meaningful alternatives to the decision backend.
