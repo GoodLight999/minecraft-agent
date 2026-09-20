@@ -32,6 +32,14 @@ function nearbyBlocks(bot, plan, maxDistance = 16, count = 96) {
   });
 }
 
+export function freshnessSnapshot(bot) {
+  return {
+    capturedAt:Date.now(),
+    dimension:bot.game?.dimension,
+    position:pos(bot.entity?.position)
+  };
+}
+
 export function snapshot(bot, { masterName, plan = null, recent = [], activity = null } = {}) {
   const master = masterName ? bot.players[masterName]?.entity : null;
   const entities = Object.values(bot.entities ?? {});
@@ -47,9 +55,7 @@ export function snapshot(bot, { masterName, plan = null, recent = [], activity =
     .sort((a,b) => a.distance-b.distance).slice(0,16);
 
   return {
-    capturedAt:Date.now(),
-    dimension:bot.game?.dimension,
-    position:pos(bot.entity?.position),
+    ...freshnessSnapshot(bot),
     health:bot.health,
     food:bot.food,
     heldItem:bot.heldItem?.name ?? null,

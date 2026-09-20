@@ -6,7 +6,8 @@
   "scripts": {
     "test": "node --test",
     "probe": "node probe.mjs",
-    "postinstall": "node patch-pathfinder.mjs && node prepare-viewer.mjs"
+    "postinstall": "node patch-pathfinder.mjs && node prepare-viewer.mjs",
+    "companion": "node companion/run.mjs"
   },
   "dependencies": {
     "canvas": "^3.2.3",

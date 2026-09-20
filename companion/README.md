@@ -85,3 +85,26 @@ Environment:
 - `EXPERIENTIAL_FALLBACK_COOLDOWN_MS`: how long to skip an explicitly exhausted/unavailable Experiential lane, default 300000.
 
 `DecisionRouter` revalidates that every returned `action` is one of the live candidates even when an adapter is not System-One-based. Provider capability metadata records optional features such as typed choice, probability distributions, binary probabilities, ordinal scores, maximum choice count and native vision. A future Jev-like or superior decision model therefore needs an adapter, not a rewrite of the Minecraft body loop.
+
+
+## Running the companion entry point
+
+The original speedrun entry points remain unchanged. The additive companion runtime starts with:
+
+```bash
+npm run companion
+```
+
+Configuration is environment-variable based; copy names from `companion/.env.example` into your own local environment or secret manager. Do not commit real keys.
+
+Minimum:
+- Minecraft server reachable through `MC_HOST` / `MC_PORT`.
+- one decision backend key: Experiential or TypeSafe.
+- `MASTER_NAME` is recommended. Alternatively, `AUTO_CLAIM_MASTER=1` lets the first non-bot chat sender become the master for local testing.
+
+Optional:
+- `DEEPSEEK_API_KEY` enables asynchronous high-level planning and streamed Japanese dialogue.
+- `IRODORI_ENABLED=1` enables Irodori audio. Merely setting an Irodori URL does not turn audio on.
+- Minecraft chat remains the temporary human input surface and receives text replies unless `CHAT_REPLIES=0`.
+
+The body loop uses a full semantic world observation before the decision, then only a lightweight position/dimension snapshot for stale-decision validation. Movement skills are short segments so control returns to the decision backend frequently instead of locking the bot into multi-second follow/path jobs.

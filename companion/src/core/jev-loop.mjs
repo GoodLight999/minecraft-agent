@@ -1,8 +1,8 @@
 import { isDecisionFresh } from './freshness.mjs';
 
 export class JevLoop {
-  constructor({ getState, registry, context, jev, actions, intervalMs = 350, onDecision = () => {}, onResult = () => {} }) {
-    Object.assign(this, { getState, registry, context, jev, actions, intervalMs, onDecision, onResult });
+  constructor({ getState, getFreshState = getState, registry, context, jev, actions, intervalMs = 350, onDecision = () => {}, onResult = () => {} }) {
+    Object.assign(this, { getState, getFreshState, registry, context, jev, actions, intervalMs, onDecision, onResult });
     this.running = false;
     this.iteration = 0;
   }
@@ -14,16 +14,17 @@ export class JevLoop {
 
     const decision = await this.jev.decide(before, candidates);
     const selected = candidates.find(c => c.id === decision.action);
-    if (!selected) throw new Error(`JEV selected unknown action: ${decision.action}`);
+    if (!selected) throw new Error(`Decision backend selected unknown action: ${decision.action}`);
 
-    const afterDecision = await this.getState();
+    const afterDecision = await this.getFreshState();
     if (!isDecisionFresh(before, afterDecision)) {
       return { skipped: 'stale-decision', decision };
     }
 
-    this.onDecision({ state: before, candidates, decision });
+    this.iteration++;
+    this.onDecision({ iteration:this.iteration, state:before, candidates, decision });
     const result = await this.actions.run(selected);
-    this.onResult({ state: afterDecision, decision, result });
+    this.onResult({ iteration:this.iteration, state:before, freshState:afterDecision, decision, result });
     return { decision, result };
   }
 
