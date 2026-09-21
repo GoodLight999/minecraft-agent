@@ -68,7 +68,7 @@ Dialogue / voice:
 Unit tests require neither external API calls nor a running Minecraft server. The original speedrun implementation has not been modified by these companion commits.
 
 Next:
-1. live-test the companion entry point in Minecraft, including reusable building blueprints and microphone barge-in, without replacing the existing speedrun entry point.
+1. run the preflight doctor, then live-test the companion entry point in Minecraft, including reusable building blueprints and microphone barge-in, without replacing the existing speedrun entry point.
 2. run regression checks against the original speedrun entry point.
 3. tune microphone/VAD thresholds and select the preferred OpenAI-compatible STT backend on the target machine.
 4. extend reusable building from the initial platform/wall/pillar/frame primitives toward richer saved structures and automation.
@@ -115,6 +115,26 @@ Optional:
 - Minecraft chat remains available as a parallel human input surface and receives text replies unless `CHAT_REPLIES=0`.
 
 The body loop uses a full semantic world observation before the decision, then only a lightweight position/dimension snapshot for stale-decision validation. Movement skills are short segments so control returns to the decision backend frequently instead of locking the bot into multi-second follow/path jobs.
+
+
+## Preflight and public-repository checks
+
+Before a live run:
+
+```bash
+npm run companion:test
+npm run companion:doctor
+```
+
+`companion:doctor` checks current Node runtime features, required Mineflayer dependencies, Minecraft port/config, decision backend configuration, optional microphone/Irodori command availability, and the tracked-file public-safety scan. It performs no API requests and consumes no model quota.
+
+For a credentials-free repository check that is also suitable before a commit:
+
+```bash
+npm run companion:public-check
+```
+
+The public-only mode uses `git ls-files`, rejects tracked local environment/key/private-note paths, and scans tracked text files for a small set of high-confidence secret/private-document signatures. It reports only file paths and risk categories, never matching secret contents. This is defense in depth; private design and cross-thread handoff state still belongs in Notion rather than the public fork.
 
 
 ## Microphone STT and barge-in
