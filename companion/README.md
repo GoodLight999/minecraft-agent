@@ -63,10 +63,10 @@ Dialogue / voice:
 Unit tests require neither external API calls nor a running Minecraft server. The original speedrun implementation has not been modified by these companion commits.
 
 Next:
-1. connect this companion runtime to a Mineflayer entry point without replacing the existing speedrun entry point.
-2. use Minecraft chat as a temporary human input surface and run director/dialogue alongside the JEV body loop.
+1. live-test the companion entry point in Minecraft, including reusable building blueprints, without replacing the existing speedrun entry point.
+2. run regression checks against the original speedrun entry point.
 3. add microphone STT/VAD and barge-in.
-4. expand ordinary-play skills: storage, crafting/smelting, ranching, building and reusable automation.
+4. extend reusable building from the initial platform/wall/pillar/frame primitives toward richer saved structures and automation.
 5. add registry/recipe-driven mod abstractions and low-frequency visual fact extraction for GUI state when Mineflayer cannot observe it directly.
 6. add working/episodic/semantic/world memory and reusable skill experience.
 
@@ -118,8 +118,22 @@ The companion now treats ordinary Minecraft work as short, composable decision s
 - **Crafting:** use Mineflayer's live registry/recipe system to expose one currently craftable plan target at a time. This is intentionally registry-driven so modded recipe/item names have a path into the same abstraction when Mineflayer can see them.
 - **Smelting:** loading fuel/input and collecting output are separate actions. The companion does not wait at a furnace until cooking completes. Normal furnaces, blast furnaces and smokers are filtered by compatible output class.
 - **Ranching:** observed cows, sheep, pigs and chickens become individual feed/breeding candidates when the high-level activity calls for ranching. Per-entity cooldowns avoid repeatedly feeding the same mob.
+- **Building:** the director selects a reusable named blueprint (`platform`, `wall`, `pillar`, or `frame`) plus anchor, facing, dimensions and material. Only currently supported unfinished cells become JEV candidates, one placement at a time; completed cells are skipped and occupied blueprint cells are never auto-destroyed.
 
 Candidate generation removes clearly impossible or self-defeating options (for example, iron smelting in a smoker, or depositing raw iron/fuel while an unmet iron-ingot target depends on them) while leaving meaningful alternatives to the decision backend.
+
+
+## Reusable building blueprints
+
+Building deliberately stays split across planning and body control. The high-level plan chooses a small named blueprint and parameters; local code materializes relative cells and JEV chooses among currently executable placements. A selected action performs at most one placement or one short approach segment before the world is observed again.
+
+Blueprints are deterministic and reusable:
+- `platform`: width × depth single-layer surface.
+- `wall`: width × height plane with facing rotation.
+- `pillar`: vertical column.
+- `frame`: floor/roof perimeter plus corner posts.
+
+The renderer will not silently excavate a mismatched block. Cells occupied by a different block are reported as blocked and omitted from executable placement candidates. Higher cells whose blueprint cell directly below is unfinished stay locked until that dependency is complete.
 
 
 ## Offline replay harness

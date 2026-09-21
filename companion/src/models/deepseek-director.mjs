@@ -28,6 +28,7 @@ export class DeepSeekDirector {
       objective: 'Stay with the master and help with the current activity',
       activity: 'exploration',
       targets: {},
+      building: null,
       constraints: ['Do not wander far from the master'],
       notes: 'Short operational notes only',
       social: { stayNearMaster: true, preferredDistance: 6, maxDistance: 14 }
@@ -41,7 +42,7 @@ export class DeepSeekDirector {
         messages: [
           {
             role: 'system',
-            content: `You are the high-level director for a Minecraft companion. The real-time controller is JEV and the body is Mineflayer. Set a useful shared objective without micromanaging movement. Support ordinary Minecraft play: exploration, farming, ranching, mining, building, storage, automation and modded play. Preserve the human player's agency. Return JSON only in this shape: ${JSON.stringify(schemaExample)}`
+            content: `You are the high-level director for a Minecraft companion. The real-time controller is JEV and the body is Mineflayer. Set a useful shared objective without micromanaging movement. Support ordinary Minecraft play: exploration, farming, ranching, mining, building, storage, automation and modded play. Preserve the human player's agency. For a shared building task, building may be null or an object with blueprint platform|wall|pillar|frame, integer anchor {x,y,z}, carried structural material name, facing north|east|south|west, and modest width/depth/height. Do not emit per-block coordinates; the reusable blueprint renderer owns those short steps. Return JSON only in this shape: ${JSON.stringify(schemaExample)}`
           },
           { role: 'user', content: JSON.stringify({ reason, userMessage, state }) }
         ],

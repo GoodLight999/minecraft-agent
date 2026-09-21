@@ -1,6 +1,7 @@
 import { Vec3 } from 'vec3';
 
 const CROP_AGE = { wheat:7, carrots:7, potatoes:7, beetroots:3 };
+const PLACEMENT_REPLACEABLE = new Set(['air','cave_air','void_air','water','lava','short_grass','tall_grass','snow']);
 
 export function createMineflayerContext(bot, { goals, getMasterName = () => null } = {}) {
   const interactionCooldowns = new Map();
@@ -81,6 +82,54 @@ export function createMineflayerContext(bot, { goals, getMasterName = () => null
     return recipes?.length ? { item, recipe:recipes[0], table } : null;
   };
 
+
+  const placementFaces = target => [
+    { reference:target.offset(0,-1,0), face:new Vec3(0,1,0) },
+    { reference:target.offset(0,1,0), face:new Vec3(0,-1,0) },
+    { reference:target.offset(-1,0,0), face:new Vec3(1,0,0) },
+    { reference:target.offset(1,0,0), face:new Vec3(-1,0,0) },
+    { reference:target.offset(0,0,-1), face:new Vec3(0,0,1) },
+    { reference:target.offset(0,0,1), face:new Vec3(0,0,-1) }
+  ];
+
+  const replaceableForPlacement = block =>
+    !block || block.boundingBox === 'empty' || PLACEMENT_REPLACEABLE.has(block.name);
+
+  const placementSupport = position => {
+    const target = toVec3(position);
+    const current = bot.blockAt(target);
+    if (!replaceableForPlacement(current)) return null;
+    for (const option of placementFaces(target)) {
+      const reference = bot.blockAt(option.reference);
+      if (reference && reference.boundingBox !== 'empty' && !PLACEMENT_REPLACEABLE.has(reference.name)) {
+        return { reference, face:option.face };
+      }
+    }
+    return null;
+  };
+
+  const canPlaceBlockAt = position => Boolean(placementSupport(position));
+
+  const placeBlockAt = async (position, itemName) => {
+    const target = toVec3(position);
+    const current = bot.blockAt(target);
+    if (current?.name === itemName) return current;
+    if (!replaceableForPlacement(current)) throw new Error(`target cell is occupied by ${current?.name ?? 'unknown block'}`);
+    const stack = bot.inventory.items().find(i => i.name === itemName);
+    if (!stack) throw new Error(`placement item ${itemName} is unavailable`);
+    const support = placementSupport(target);
+    if (!support) throw new Error('target cell has no solid placement face yet');
+    bot.pathfinder.setGoal(null);
+    bot.clearControlStates();
+    await bot.equip(stack, 'hand');
+    await bot.lookAt(target.offset(0.5,0.5,0.5), true);
+    await bot.placeBlock(support.reference, support.face);
+    await bot.waitForTicks(2);
+    const placed = bot.blockAt(target);
+    if (!placed || replaceableForPlacement(placed)) throw new Error(`block placement did not fill target cell with ${itemName}`);
+    return placed;
+  };
+
   return {
     bot,
     stopMovement,
@@ -95,6 +144,8 @@ export function createMineflayerContext(bot, { goals, getMasterName = () => null
     digBlock,
     attackOnce,
     findCraftRecipe,
+    canPlaceBlockAt,
+    placeBlockAt,
     onCooldown:key => (interactionCooldowns.get(key) ?? 0) > Date.now(),
     markCooldown:(key, ms) => interactionCooldowns.set(key, Date.now() + ms),
     isMatureCrop: block => {

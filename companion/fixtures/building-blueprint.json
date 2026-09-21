@@ -1,0 +1,38 @@
+{
+  "name": "building-blueprint",
+  "state": {
+    "position": {"x": 0, "y": 64, "z": 0},
+    "inventory": [{"name": "oak_planks", "count": 20, "slot": 1}],
+    "inventoryCounts": {"oak_planks": 20},
+    "inventorySlotsFree": 35,
+    "nearbyBlocks": [],
+    "animals": [],
+    "drops": [],
+    "threats": [],
+    "master": {"visible": false},
+    "plan": {
+      "objective": "Build a small reusable wall",
+      "activity": "building",
+      "targets": {},
+      "building": {
+        "blueprint": "wall",
+        "anchor": {"x": 2, "y": 64, "z": 2},
+        "material": "oak_planks",
+        "facing": "north",
+        "width": 3,
+        "height": 2
+      }
+    }
+  },
+  "meta": {
+    "defaultGroundY": 63,
+    "blocks": [{"name": "oak_planks", "position": {"x": 2, "y": 64, "z": 2}}]
+  },
+  "expect": {
+    "mustInclude": [
+      "place_blueprint_block__wall_oak_planks_2_65_2",
+      "place_blueprint_block__wall_oak_planks_3_64_2"
+    ],
+    "maxCandidates": 4
+  }
+}

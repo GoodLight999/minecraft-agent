@@ -122,3 +122,10 @@ optimization/seed-route.svg
 *secrets*.yml
 *secret*.json
 *key*.json
+
+# Private/local companion notes and handoff material belong outside the public fork
+companion/private/
+companion/handoff/
+companion/local-notes/
+**/*.private.md
+**/*.local.md

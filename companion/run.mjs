@@ -8,6 +8,7 @@ import { createMineflayerContext } from './src/runtime/mineflayer-context.mjs';
 import { AsyncDirector } from './src/runtime/async-director.mjs';
 import { registerCompanionSkills } from './src/skills/companion-skills.mjs';
 import { registerWorkSkills } from './src/skills/work-skills.mjs';
+import { registerBuildingSkills } from './src/skills/building-skills.mjs';
 import { createDecisionRouterFromEnv } from './src/models/create-decision-router.mjs';
 import { DeepSeekDirector } from './src/models/deepseek-director.mjs';
 import { DialogueRuntime } from './src/voice/dialogue-runtime.mjs';
@@ -50,6 +51,7 @@ const defaultPlan = {
   objective: 'Stay available to the master and share ordinary Minecraft play without inventing busywork.',
   activity: 'companionship',
   targets: {},
+  building:null,
   constraints: ['Do not wander far from the master without a shared reason.'],
   notes: 'Quiet companionship is allowed.',
   social: { stayNearMaster:true, preferredDistance:6, maxDistance:14 }
@@ -73,6 +75,7 @@ const context = createMineflayerContext(bot, {
 const registry = new SkillRegistry();
 registerCompanionSkills(registry);
 registerWorkSkills(registry);
+registerBuildingSkills(registry);
 
 const actions = new ActionManager({
   stop:async reason => {
