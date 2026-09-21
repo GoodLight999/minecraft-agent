@@ -14,6 +14,10 @@ import { DeepSeekDirector } from './src/models/deepseek-director.mjs';
 import { DialogueRuntime } from './src/voice/dialogue-runtime.mjs';
 import { IrodoriClient } from './src/voice/irodori-client.mjs';
 import { SpeechQueue } from './src/voice/speech-queue.mjs';
+import { Pcm16VadSegmenter } from './src/voice/pcm16-vad.mjs';
+import { OpenAICompatibleSttClient } from './src/voice/openai-stt-client.mjs';
+import { VoiceInputRuntime } from './src/voice/voice-input-runtime.mjs';
+import { FfmpegMicSource } from './src/voice/ffmpeg-mic-source.mjs';
 
 const { pathfinder, Movements, goals } = pathfinderPkg;
 
@@ -118,6 +122,30 @@ const dialogue = directorModel
     })
   : null;
 
+const micEnabled = process.env.MIC_ENABLED === '1';
+const micSampleRate = numberEnv('MIC_SAMPLE_RATE', 16_000);
+const voiceInput = micEnabled
+  ? new VoiceInputRuntime({
+      vad:new Pcm16VadSegmenter({ sampleRate:micSampleRate }),
+      stt:new OpenAICompatibleSttClient(),
+      sampleRate:micSampleRate,
+      onSpeechStart:() => {
+        console.log('[voice] speech start; interrupting outgoing dialogue');
+        if (dialogue) dialogue.interrupt();
+        else speech.interrupt();
+      },
+      onTranscript:text => handleMasterUtterance(text, { source:'voice' }),
+      onError:error => console.error('[voice]', error.message)
+    })
+  : null;
+const micSource = micEnabled
+  ? new FfmpegMicSource({
+      sampleRate:micSampleRate,
+      onData:chunk => voiceInput.pushPcm(chunk),
+      onError:error => console.error('[mic]', error.message)
+    })
+  : null;
+
 directorRuntime = new AsyncDirector({
   director:directorModel,
   getState,
@@ -175,22 +203,28 @@ function acceptMaster(username) {
   return false;
 }
 
-async function handleMasterMessage(username, message) {
-  if (!acceptMaster(username)) return;
-  console.log(`[master ${username}] ${message}`);
+async function handleMasterUtterance(message, { source = 'chat', username = masterName } = {}) {
+  const text = String(message ?? '').trim();
+  if (!text) return;
+  console.log(source === 'voice' ? `[voice master] ${text}` : `[master ${username}] ${text}`);
 
-  void actions.interrupt('master spoke');
-  void directorRuntime.request('master-message', { userMessage:message, force:true });
+  void actions.interrupt(`master spoke via ${source}`);
+  void directorRuntime.request('master-message', { userMessage:text, force:true });
 
   if (!dialogue) return;
-  const reply = await dialogue.respond(message);
+  const reply = await dialogue.respond(text);
   if (!reply) return;
 
   dialogueHistory.push(
-    { role:'user', content:message },
+    { role:'user', content:text },
     { role:'assistant', content:reply }
   );
   dialogueHistory = dialogueHistory.slice(-10);
+}
+
+async function handleMasterMessage(username, message) {
+  if (!acceptMaster(username)) return;
+  return handleMasterUtterance(message, { source:'chat', username });
 }
 
 bot.on('chat', (username, message) => {
@@ -215,6 +249,8 @@ function stopRuntime({ quit = true } = {}) {
   stopped = true;
   if (periodicTimer) clearInterval(periodicTimer);
   loopAbort?.abort();
+  micSource?.stop();
+  voiceInput?.interrupt();
   directorRuntime.stop();
   dialogue?.interrupt();
   context.stopMovement();
@@ -234,9 +270,11 @@ bot.once('spawn', async () => {
     bot.pathfinder.setMovements(movements);
     bot.pathfinder.thinkTimeout = numberEnv('PATHFINDER_THINK_TIMEOUT_MS', 3000);
 
+    micSource?.start();
+
     console.log(
       `[companion] spawned as ${bot.username} on ${bot.version}; master=${masterName ?? '(unset)'}; ` +
-      `voice=${voiceEnabled ? 'irodori' : 'chat-only'}`
+      `voice=${voiceEnabled ? 'irodori' : 'chat-only'}; input=${micEnabled ? 'microphone-stt' : 'minecraft-chat'}`
     );
 
     if (directorModel) void directorRuntime.request('spawn', { force:true });

@@ -57,15 +57,20 @@ Dialogue / voice:
 - each short utterance disables Irodori server-side long-text chunking because chunking is already handled upstream.
 - the speech queue prefetches at most two utterances: current plus next, hiding synthesis latency without unbounded GPU concurrency.
 - playback currently uses ffplay through stdin and is cancellable.
+- optional microphone input uses ffmpeg only as a PCM capture boundary; OS/device-specific arguments remain local configuration.
+- a lightweight adaptive PCM16 VAD produces speech-start immediately and complete bounded utterance segments after silence.
+- speech-start performs barge-in immediately by aborting the active DeepSeek dialogue stream and current/queued TTS before transcription finishes.
+- completed utterances are WAV-wrapped and sent through a provider-neutral OpenAI-compatible `/v1/audio/transcriptions` client; local Whisper-compatible servers can use the same boundary.
+- a newer detected human utterance invalidates and aborts older queued/in-flight transcription work.
 
 ## Development status
 
 Unit tests require neither external API calls nor a running Minecraft server. The original speedrun implementation has not been modified by these companion commits.
 
 Next:
-1. live-test the companion entry point in Minecraft, including reusable building blueprints, without replacing the existing speedrun entry point.
+1. live-test the companion entry point in Minecraft, including reusable building blueprints and microphone barge-in, without replacing the existing speedrun entry point.
 2. run regression checks against the original speedrun entry point.
-3. add microphone STT/VAD and barge-in.
+3. tune microphone/VAD thresholds and select the preferred OpenAI-compatible STT backend on the target machine.
 4. extend reusable building from the initial platform/wall/pillar/frame primitives toward richer saved structures and automation.
 5. add registry/recipe-driven mod abstractions and low-frequency visual fact extraction for GUI state when Mineflayer cannot observe it directly.
 6. add working/episodic/semantic/world memory and reusable skill experience.
@@ -105,9 +110,20 @@ Minimum:
 Optional:
 - `DEEPSEEK_API_KEY` enables asynchronous high-level planning and streamed Japanese dialogue.
 - `IRODORI_ENABLED=1` enables Irodori audio. Merely setting an Irodori URL does not turn audio on.
-- Minecraft chat remains the temporary human input surface and receives text replies unless `CHAT_REPLIES=0`.
+- `MIC_ENABLED=1` enables local microphone capture. `MIC_FFMPEG_ARGS_JSON` contains the platform/device-specific ffmpeg input arguments and must stay in local environment configuration.
+- `STT_BASE_URL` points at any compatible `/v1/audio/transcriptions` service. `STT_API_KEY` is optional for local endpoints and must never be committed when used.
+- Minecraft chat remains available as a parallel human input surface and receives text replies unless `CHAT_REPLIES=0`.
 
 The body loop uses a full semantic world observation before the decision, then only a lightweight position/dimension snapshot for stale-decision validation. Movement skills are short segments so control returns to the decision backend frequently instead of locking the bot into multi-second follow/path jobs.
+
+
+## Microphone STT and barge-in
+
+When microphone input is enabled, ffmpeg emits mono PCM16 into the companion process. The VAD is intentionally local and cheap: it adapts to an idle noise floor, confirms speech over a few frames, emits a speech-start event immediately, then closes the utterance after sustained silence or a maximum duration.
+
+Speech-start is the interruption boundary. It cancels outgoing dialogue generation and audio immediately, so the human does not need to wait for recognition before interrupting the companion. The completed segment is then wrapped as WAV and sent to the configured STT adapter. Only a non-empty recognized transcript enters the same master-message path used by Minecraft chat; body actions are interrupted after a transcript exists rather than for arbitrary microphone noise.
+
+The STT contract is deliberately provider-neutral: `transcribe(wav, { signal }) -> text`. The initial adapter speaks the common OpenAI-compatible transcription protocol, while microphone capture is isolated behind `FfmpegMicSource`. Switching to another STT model or capture mechanism therefore does not require rewriting dialogue, JEV, or Mineflayer control.
 
 
 ## Ordinary-work expansion
